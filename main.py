@@ -11,6 +11,6 @@ logger.addHandler(handler)
 
 bot = CorkClient(command_prefix="c!", intents=discord.Intents.all(), help_command=None)
 
-[bot.load_extension("cogs."+x.rstrip(".py")) for x in os.listdir("cogs") if x.endswith(".py")]
+[bot.load_extension("cogs."+x.replace(".py", "")) for x in os.listdir("cogs") if x.endswith(".py")]
 
 bot.run(bot.get_settings("token"))
