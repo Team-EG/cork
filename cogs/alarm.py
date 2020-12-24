@@ -38,11 +38,6 @@ class Alarm(commands.Cog):
                                        "알림"
                                    )
                                ]
-                           ),
-                           manage_commands.create_option(
-                               "반복",
-                               "반복의 여부입니다. `반복` 타입에서만 사용 가능합니다.",
-
                            )
                        ],
                        guild_ids=guild_ids)
@@ -51,6 +46,23 @@ class Alarm(commands.Cog):
         await ctx.channel.send(
             f"DEBUG: 알림이름: {name} | 타입: {_type}"
         )
+
+    @cog_ext.cog_slash(name="set",
+                       guild_ids=guild_ids)
+    async def alarm_set(self, ctx: SlashContext):
+        await ctx.send(5)
+
+    @cog_ext.cog_subcommand(base="set",
+                            name="반복",
+                            guild_ids=guild_ids)
+    async def alarm_set_repeat(self, ctx: SlashContext):
+        await ctx.send(5)
+
+    @cog_ext.cog_subcommand(base="set",
+                            name="알림",
+                            guild_ids=guild_ids)
+    async def alarm_set_alarm(self, ctx: SlashContext):
+        await ctx.send(5)
 
 
 def setup(bot):
