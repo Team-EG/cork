@@ -1,4 +1,3 @@
-import logging
 from discord.ext import commands
 from discord_slash import cog_ext
 from discord_slash import SlashContext
@@ -26,9 +25,24 @@ class Alarm(commands.Cog):
                            ),
                            manage_commands.create_option(
                                "타입",
-                               "아직 준비중이에요!",
+                               "알림 타입입니다.",
                                3,
-                               True
+                               True,
+                               choices=[
+                                   manage_commands.create_choice(
+                                       "repeat",
+                                       "반복"
+                                   ),
+                                   manage_commands.create_choice(
+                                       "alarm",
+                                       "알림"
+                                   )
+                               ]
+                           ),
+                           manage_commands.create_option(
+                               "반복",
+                               "반복의 여부입니다. `반복` 타입에서만 사용 가능합니다.",
+
                            )
                        ],
                        guild_ids=guild_ids)
