@@ -1,13 +1,15 @@
 import json
 import discord
 from discord.ext import commands
-# from discord_slash import SlashCommand
+from .sqlite_db import SQLiteDB
+from discord_slash import SlashCommand
 
 
 class CorkClient(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.slash = SlashCommand(self)
+        self.slash = SlashCommand(self, auto_register=True)
+        self.db = SQLiteDB("main")
 
     @staticmethod
     def get_settings(key: str):

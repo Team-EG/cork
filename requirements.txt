@@ -1,1 +1,3 @@
 discord.py
+aiosqlite
+discord-py-slash-command
