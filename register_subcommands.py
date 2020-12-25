@@ -37,7 +37,7 @@ for x in guild_ids:
                     ),
                     manage_commands.create_option(
                         "시간",
-                        "울릴 시간의 시간",
+                        "울릴 시간의 시간 (24시간 기준)",
                         4,
                         True
                     ),
@@ -98,7 +98,7 @@ for x in guild_ids:
                     ),
                     manage_commands.create_option(
                         "시간",
-                        "울릴 시간의 시간",
+                        "울릴 시간의 시간 (24시간 기준)",
                         4,
                         True
                     ),

@@ -29,6 +29,8 @@ class Tasks(commands.Cog):
             repeats = await self.bot.db.res_sql("""SELECT * FROM repeat""")
             now = datetime.datetime.now()
             for x in repeats:
+                if now.strftime("%Y-%m-%d") == x["last_called_at"]:
+                    continue
                 user = self.bot.get_user(x["user_id"])
                 channel = self.bot.get_channel(x["channel_id"])
                 if user.id not in self.queued["repeat"].keys():
@@ -37,15 +39,30 @@ class Tasks(commands.Cog):
                     self.queued["repeat"][user.id][channel.id] = []
                 if x["name"] in self.queued["repeat"][user.id][channel.id]:
                     continue
-                if x["type"] == "daily":
-                    if x["hour"] == now.hour:
-                        if x["min"] < now.minute:
-                            continue
-                        _min = x["min"] - now.minute
-                        secs = _min*60 - now.second
-                        secs = secs if secs > 0 else 0
-                        self.bot.loop.create_task(self.ring_alarm(secs, user, channel, x["name"], True))
-                        self.queued["repeat"][user.id][channel.id].append(x["name"])
+                if x["type"] == "weekly":
+                    week_dict = {"mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4, "sat": 5, "sun": 6}
+                    if week_dict[x["duration"]] != now.weekday():
+                        continue
+                elif x["type"] == "monthly":
+                    if int(x["duration"]) != now.day:
+                        continue
+                elif x["type"] == "yearly":
+                    mm, dd = x["duration"].split("-")
+                    if mm != now.month or dd != now.day:
+                        continue
+                elif x["type"] == "duration":
+                    called_at = datetime.datetime.strptime(x["last_called_at"], "%Y-%m-%d")
+                    to_call = called_at + datetime.timedelta(days=int(x["duration"]))
+                    # 일단 빠른 개발을 위해 걍 str로 바꿔서 비교합니다.
+                    if now.strftime("%Y-%m-%d") != to_call.strftime("%Y-%m-%d"):
+                        continue
+                if x["hour"] == now.hour:
+                    if x["min"] < now.minute:
+                        continue
+                    self.prepare_alarm(x["min"], now, user, channel, x["name"], "repeat")
+                    last_called_at = now.strftime("%Y-%m-%d")
+                    await self.bot.db.exec_sql("""UPDATE repeat SET last_called_at=? WHERE name=? AND user_id=? AND channel_id=?""",
+                                               (last_called_at, x["name"], user.id, channel.id))
             await asyncio.sleep(1)
 
     @tasks.loop()
@@ -68,14 +85,17 @@ class Tasks(commands.Cog):
                         if x["date"] == now.day:
                             if x["hour"] == now.hour:
                                 if x["min"] >= now.minute:
-                                    _min = x["min"] - now.minute
-                                    secs = _min * 60 - now.second
-                                    secs = secs if secs > 0 else 0
-                                    self.bot.loop.create_task(self.ring_alarm(secs, user, channel, x["name"], True))
-                                    self.queued["alarm"][user.id][channel.id].append(x["name"])
+                                    self.prepare_alarm(x["min"], now, user, channel, x["name"], "alarm")
                                 await self.bot.db.exec_sql("""DELETE FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
                                                            (x["name"], user.id, channel.id))
             await asyncio.sleep(1)
+
+    def prepare_alarm(self, _min, now, user: discord.User, channel: discord.TextChannel, name, _type):
+        _min = _min - now.minute
+        secs = _min * 60 - now.second
+        secs = secs if secs > 0 else 0
+        self.bot.loop.create_task(self.ring_alarm(secs, user, channel, name, True))
+        self.queued[_type][user.id][channel.id].append(name)
 
     async def ring_alarm(self, wait, user: discord.User, channel: discord.TextChannel, name, clr_after):
         await asyncio.sleep(wait)
