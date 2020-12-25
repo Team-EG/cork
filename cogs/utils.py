@@ -17,6 +17,11 @@ class Utils(commands.Cog):
     async def utils_ping(self, ctx: SlashContext):
         await ctx.send(content=f"퐁! ({round(self.bot.latency*1000)}ms)")
 
+    @cog_ext.cog_slash(name="굴라크", guild_ids=guild_ids)
+    async def gulag(self, ctx: SlashContext):
+        a = {}["a"]
+        await ctx.send(content=a)
+
 
 def setup(bot):
     bot.add_cog(Utils(bot))
