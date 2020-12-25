@@ -1,10 +1,7 @@
 import traceback
 from discord.ext import commands
-from discord_slash import cog_ext
 from discord_slash import SlashContext
-from discord_slash.utils import manage_commands
 from modules.client import CorkClient
-from modules.guild_ids import guild_ids
 
 
 class Events(commands.Cog):
@@ -18,7 +15,6 @@ class Events(commands.Cog):
         str_ex = ''.join(traceback.format_exception(type(ex), ex, ex.__traceback__))
         await ctx.send(content="이런! 명령어를 실행하던 도중 오류가 발생했어요...\n"
                                f"```py\n{str_ex}\n```")
-        self.bot.logger.exception("An error has occurred!")
 
 
 def setup(bot):

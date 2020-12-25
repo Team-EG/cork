@@ -1,7 +1,6 @@
 import json
 import logging
 import datetime
-import discord
 from discord.ext import commands
 from .sqlite_db import SQLiteDB
 from discord_slash import SlashCommand

@@ -1,14 +1,9 @@
-import re
 import asyncio
 import datetime
 import discord
 from discord.ext import tasks
 from discord.ext import commands
-from discord_slash import cog_ext
-from discord_slash import SlashContext
-from discord_slash.utils import manage_commands
 from modules.client import CorkClient
-from modules.guild_ids import guild_ids
 
 
 class Tasks(commands.Cog):
