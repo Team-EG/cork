@@ -1,4 +1,5 @@
 import re
+import datetime
 import discord
 from discord.ext import commands
 from discord_slash import cog_ext
@@ -77,9 +78,9 @@ class Alarm(commands.Cog):
         alarms = [x for x in alarms if
                   not x["min"] and not x["hour"] and not x["date"] and not x["month"] and not x["year"]]
         embed = discord.Embed(title="설정해야 하는 알림 리스트",
-                              description="`반복` 타입은 `/set 반복 <이름> <분> <시간> <반복 주기> <옵션(특정 주기마다로 설정한 경우):반복할 주기(일)>` "
-                                          "명령어로 설정해주시고,\n `알림` 타입은 "
-                                          "`/set 알림 <이름> <분> <시간> <일> <월> <년도>` 명령어로 설정해주세요.")
+                              description="`반복` 타입은 `/set 반복` 명령어로 설정해주시고,\n"
+                                          "`알림` 타입은 `/set 알림` 명령어로 설정해주세요.",
+                              timestamp=self.bot.get_kst())
         embed.add_field(name="반복 타입", value="없음 (만약에 잘못된 것 같다면 채널을 확인해주세요.)" if not repeats else "`" + ("`, `".join(
             [f"{x['name']}" for x in repeats]
         )) + "`")
@@ -118,7 +119,22 @@ class Alarm(commands.Cog):
                             name="알림",
                             guild_ids=guild_ids)
     async def alarm_set_alarm(self, ctx: SlashContext, name, _min, hour, day, month, year):
-        await ctx.send(5)
+        channel_id = ctx.channel.id if not isinstance(ctx.channel, int) else ctx.channel
+        user_id = ctx.author.id if not isinstance(ctx.author, int) else ctx.author
+        is_alarm = await self.bot.db.res_sql("""SELECT * FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
+                                             (name, user_id, channel_id))
+        if not is_alarm:
+            return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.", complete_hidden=True)
+        today = datetime.datetime.now()
+        if day == 0:
+            day = today.day
+        if month == 0:
+            month = today.month
+        if year == 0:
+            year = today.year
+        await self.bot.db.exec_sql("""UPDATE alarm SET min=?, hour=?, date=?, month=?, year=? WHERE name=? AND user_id=? AND channel_id=?""",
+                                   (_min, hour, day, month, year, name, user_id, channel_id))
+        await ctx.send(content=f"성공적으로 `{name}` 알림을 설정했습니다!", complete_hidden=True)
 
 
 def setup(bot):
