@@ -59,7 +59,7 @@ class Tasks(commands.Cog):
                 if x["hour"] == now.hour:
                     if x["min"] < now.minute:
                         continue
-                    self.prepare_alarm(x["min"], now, user, channel, x["name"], "repeat")
+                    self.prepare_alarm(x["min"], now, user, channel, x["name"], "repeat",  x["content"])
                     last_called_at = now.strftime("%Y-%m-%d")
                     await self.bot.db.exec_sql("""UPDATE repeat SET last_called_at=? WHERE name=? AND user_id=? AND channel_id=?""",
                                                (last_called_at, x["name"], user.id, channel.id))
@@ -85,21 +85,22 @@ class Tasks(commands.Cog):
                         if x["date"] == now.day:
                             if x["hour"] == now.hour:
                                 if x["min"] >= now.minute:
-                                    self.prepare_alarm(x["min"], now, user, channel, x["name"], "alarm")
+                                    self.prepare_alarm(x["min"], now, user, channel, x["name"], "alarm", x["content"])
                                 await self.bot.db.exec_sql("""DELETE FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
                                                            (x["name"], user.id, channel.id))
             await asyncio.sleep(1)
 
-    def prepare_alarm(self, _min, now, user: discord.User, channel: discord.TextChannel, name, _type):
+    def prepare_alarm(self, _min, now, user: discord.User, channel: discord.TextChannel, name, _type, cont):
         _min = _min - now.minute
         secs = _min * 60 - now.second
         secs = secs if secs > 0 else 0
-        self.bot.loop.create_task(self.ring_alarm(secs, user, channel, name, True))
+        self.bot.loop.create_task(self.ring_alarm(secs, user, channel, name, cont, True))
         self.queued[_type][user.id][channel.id].append(name)
 
-    async def ring_alarm(self, wait, user: discord.User, channel: discord.TextChannel, name, clr_after):
+    async def ring_alarm(self, wait, user: discord.User, channel: discord.TextChannel, name, cont, clr_after):
         await asyncio.sleep(wait)
         embed = discord.Embed(title="⏰ 시간이 됐어요!", description=f"설정하신 `{name}` 알림이 울렸어요!")
+        embed.add_field(name="알림 내용", value=cont)
         await channel.send(user.mention, embed=embed)
         if clr_after:
             _list = self.queued["repeat"][user.id][channel.id]

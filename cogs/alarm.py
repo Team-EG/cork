@@ -50,15 +50,15 @@ class Alarm(commands.Cog):
                            )
                        ],
                        guild_ids=guild_ids)
-    async def alarm_pin(self, ctx: SlashContext, name, _type):
+    async def alarm_pin(self, ctx: SlashContext, name, content, _type):
         channel_id = ctx.channel.id if not isinstance(ctx.channel, int) else ctx.channel
         user_id = ctx.author.id if not isinstance(ctx.author, int) else ctx.author
         if _type == "repeat":
-            await self.bot.db.exec_sql("""INSERT INTO repeat VALUES (?,?,?,?,?,?,?,?)""",
-                                       (None, None, None, None, user_id, name, channel_id, None))
+            await self.bot.db.exec_sql("""INSERT INTO repeat VALUES (?,?,?,?,?,?,?,?,?)""",
+                                       (None, None, None, None, user_id, name, channel_id, None, content))
         else:
-            await self.bot.db.exec_sql("""INSERT INTO alarm VALUES (?,?,?,?,?,?,?,?)""",
-                                       (None, None, None, None, None, user_id, name, channel_id))
+            await self.bot.db.exec_sql("""INSERT INTO alarm VALUES (?,?,?,?,?,?,?,?,?)""",
+                                       (None, None, None, None, None, user_id, name, channel_id, content))
         await ctx.send(content="성공적으로 알림 기본 설정을 이 채널에 추가했어요!\n"
                                "알림을 작동시키기 위해서는 `/set 보기` 명령어를 참고해주세요.",
                        complete_hidden=True)
