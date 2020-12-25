@@ -82,7 +82,45 @@ for x in guild_ids:
             {
                 "name": "알림",
                 "description": "알림 타입 알림 설정 명령어입니다.",
-                "type": 1
+                "type": 1,
+                "options": [
+                    manage_commands.create_option(
+                        "이름",
+                        "설정할 알림 타입 알림 이름",
+                        3,
+                        True
+                    ),
+                    manage_commands.create_option(
+                        "분",
+                        "울릴 시간의 분",
+                        4,
+                        True
+                    ),
+                    manage_commands.create_option(
+                        "시간",
+                        "울릴 시간의 시간",
+                        4,
+                        True
+                    ),
+                    manage_commands.create_option(
+                        "일",
+                        "울릴 날짜, 오늘로 하고 싶으시다면 0으로 해주세요.",
+                        4,
+                        True
+                    ),
+                    manage_commands.create_option(
+                        "월",
+                        "울릴 월, 현재 월로 하고 싶으시다면 0으로 해주세요.",
+                        4,
+                        True
+                    ),
+                    manage_commands.create_option(
+                        "년",
+                        "울릴 년, 이번 년도로 하고 싶으시다면 0으로 해주세요.",
+                        4,
+                        True
+                    )
+                ]
             }
         ]
     ))
