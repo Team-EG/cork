@@ -1,3 +1,4 @@
+import traceback
 from discord.ext import commands
 from discord_slash import cog_ext
 from discord_slash import SlashContext
@@ -14,8 +15,9 @@ class Events(commands.Cog):
     async def on_slash_command_error(self, ctx: SlashContext, ex):
         if not ctx.sent:
             await ctx.send(5)
+        str_ex = ''.join(traceback.format_exception(type(ex), ex, ex.__traceback__))
         await ctx.send(content="이런! 명령어를 실행하던 도중 오류가 발생했어요...\n"
-                               "~~일 안하는 슬래시 커맨드 익스텐션 개발자 때문에~~ 오류 정보는 보여드리기 어려워요... :(")
+                               f"```py\n{str_ex}\n```")
         self.bot.logger.exception("An error has occurred!")
 
 

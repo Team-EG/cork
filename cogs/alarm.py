@@ -136,6 +136,74 @@ class Alarm(commands.Cog):
                                    (_min, hour, day, month, year, name, user_id, channel_id))
         await ctx.send(content=f"성공적으로 `{name}` 알림을 설정했습니다!", complete_hidden=True)
 
+    @cog_ext.cog_slash(name="remove",
+                       description="선택한 알림을 삭제합니다.",
+                       guild_ids=guild_ids,
+                       options=[
+                           manage_commands.create_option(
+                               "알림타입",
+                               "알림의 타입입니다.",
+                               3,
+                               True,
+                               [manage_commands.create_choice("alarm", "알림"), manage_commands.create_choice("repeat", "반복")]
+                           ),
+                           manage_commands.create_option(
+                               "알림이름",
+                               "지울 알림의 이름입니다.",
+                               3,
+                               True
+                           )
+                       ])
+    async def remove(self, ctx: SlashContext, _type, name):
+        channel_id = ctx.channel.id if not isinstance(ctx.channel, int) else ctx.channel
+        user_id = ctx.author.id if not isinstance(ctx.author, int) else ctx.author
+        if _type == "alarm":
+            is_alarm = await self.bot.db.res_sql("""SELECT * FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
+                                                 (name, user_id, channel_id))
+            if not is_alarm:
+                return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.", complete_hidden=True)
+            await self.bot.db.exec_sql("DELETE FROM alarm WHERE name=? AND user_id=? AND channel_id=?",
+                                       (name, user_id, channel_id))
+        elif _type == "repeat":
+            is_alarm = await self.bot.db.res_sql("""SELECT * FROM repeat WHERE name=? AND user_id=? AND channel_id=?""",
+                                                 (name, user_id, channel_id))
+            if not is_alarm:
+                return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.", complete_hidden=True)
+            await self.bot.db.exec_sql("DELETE FROM repeat WHERE name=? AND user_id=? AND channel_id=?",
+                                       (name, user_id, channel_id))
+        await ctx.send(content="성공적으로 해당 알림을 삭제했어요!", complete_hidden=True)
+
+    @cog_ext.cog_slash(name="list",
+                       description="등록된 알림 리스트를 봅니다.",
+                       guild_ids=guild_ids,
+                       options=[
+                           manage_commands.create_option(
+                               "범위",
+                               "표시할 알림의 범위입니다.",
+                               3,
+                               True,
+                               [manage_commands.create_choice("personal", "자신 전체"),
+                                manage_commands.create_choice("channel", "이 채널 전체")]
+                           )
+                       ])
+    async def alarm_list(self, ctx: SlashContext, _type):
+        if _type == "personal":
+            user_id = ctx.author.id if not isinstance(ctx.author, int) else ctx.author
+            alarm_list = await self.bot.db.res_sql("""SELECT * FROM alarm WHERE user_id=?""", (user_id,))
+            repeat_list = await self.bot.db.res_sql("""SELECT * FROM repeat WHERE user_id=?""", (user_id,))
+        else:
+            channel_id = ctx.channel.id if not isinstance(ctx.channel, int) else ctx.channel
+            alarm_list = await self.bot.db.res_sql("""SELECT * FROM alarm WHERE channel_id=?""", (channel_id,))
+            repeat_list = await self.bot.db.res_sql("""SELECT * FROM repeat WHERE channel_id=?""", (channel_id,))
+        embed = discord.Embed(title="등록된 알림 리스트")
+        embed.add_field(name="반복 타입", value="없음" if not repeat_list else "`" + ("`, `".join(
+            [f"{x['name']}" for x in repeat_list]
+        )) + "`")
+        embed.add_field(name="알림 타입", value="없음" if not alarm_list else "`" + ("`, `".join(
+            [f"{x['name']}" for x in alarm_list]
+        )) + "`")
+        await ctx.send(embeds=[embed])
+
 
 def setup(bot):
     bot.add_cog(Alarm(bot))
