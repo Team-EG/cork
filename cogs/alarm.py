@@ -64,7 +64,7 @@ class Alarm(commands.Cog):
                                             (user_id, channel_id))
         repeats = [x for x in repeats if
                    not x["min"] and not x["hour"] and not x["type"] and not x["duration"] and not x["last_called_at"]]
-        alarms = await self.bot.db.res_sql("""SELECT name FROM repeat WHERE user_id=? AND channel_id=?""",
+        alarms = await self.bot.db.res_sql("""SELECT * FROM alarm WHERE user_id=? AND channel_id=?""",
                                            (user_id, channel_id))
         alarms = [x for x in alarms if
                   not x["min"] and not x["hour"] and not x["date"] and not x["month"] and not x["year"]]
@@ -83,8 +83,12 @@ class Alarm(commands.Cog):
     @cog_ext.cog_subcommand(base="set",
                             name="반복",
                             guild_ids=guild_ids)
-    async def alarm_set_repeat(self, ctx: SlashContext):
+    async def alarm_set_repeat(self, ctx: SlashContext, name, _min, hour, _type, opt=None, *args):
         await ctx.send(5)
+        if _type != "daily" and opt is None:
+            return await ctx.send(content="잘못된 입력입니다. (옵션은 `날마다` 타입을 빼면 무조건 입력해야 합니다!)")
+        if args:
+            return await ctx.send(content="잘못된 입력입니다. (옵션은 하나만 입력해야 합니다!)")
 
     @cog_ext.cog_subcommand(base="set",
                             name="알림",
