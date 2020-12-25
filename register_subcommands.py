@@ -15,7 +15,12 @@ for x in guild_ids:
         [
             {
                 "name": "반복",
-                "description": "반복 알림 설정",
+                "description": "반복 타임 알림 설정 명령어입니다.",
+                "type": 1
+            },
+            {
+                "name": "알림",
+                "description": "알림 타입 알림 설정 명령어입니다.",
                 "type": 1
             }
         ]
