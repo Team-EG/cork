@@ -52,15 +52,15 @@ class Alarm(commands.Cog):
             await self.bot.db.exec_sql("""INSERT INTO alarm VALUES (?,?,?,?,?,?,?,?)""",
                                        (None, None, None, None, None, user_id, name, channel_id))
         await ctx.send(content="성공적으로 알림 기본 설정을 이 채널에 추가했어요!\n"
-                               "알림을 작동시키기 위해서는 `/set` 명령어를 참고해주세요.")
+                               "알림을 작동시키기 위해서는 `/set 보기` 명령어를 참고해주세요.")
 
-    @cog_ext.cog_slash(name="set",
-                       description="알림 세부 설정 관련 명령어입니다.",
-                       guild_ids=guild_ids)
+    @cog_ext.cog_subcommand(base="set",
+                            name="보기",
+                            guild_ids=guild_ids)
     async def alarm_set(self, ctx: SlashContext):
         channel_id = ctx.channel.id if not isinstance(ctx.channel, int) else ctx.channel
         user_id = ctx.author.id if not isinstance(ctx.author, int) else ctx.author
-        repeats = await self.bot.db.res_sql("""SELECT name FROM repeat WHERE user_id=? AND channel_id=?""",
+        repeats = await self.bot.db.res_sql("""SELECT * FROM repeat WHERE user_id=? AND channel_id=?""",
                                             (user_id, channel_id))
         repeats = [x for x in repeats if
                    not x["min"] and not x["hour"] and not x["type"] and not x["duration"] and not x["last_called_at"]]

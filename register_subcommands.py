@@ -11,17 +11,25 @@ for x in guild_ids:
         CorkClient.get_settings("token"),
         x,
         "set",
-        "알림 설정 관련 명령어입니다.",
+        "알림 세부 설정 관련 명령어입니다.",
         [
+            {
+                "name": "보기",
+                "description": "설정이 필요한 알림들을 보여줍니다.",
+                "type": 1,
+                "required": False
+            },
             {
                 "name": "반복",
                 "description": "반복 타임 알림 설정 명령어입니다.",
-                "type": 1
+                "type": 1,
+                "required": False
             },
             {
                 "name": "알림",
                 "description": "알림 타입 알림 설정 명령어입니다.",
-                "type": 1
+                "type": 1,
+                "required": False
             }
         ]
     ))
