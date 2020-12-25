@@ -1,5 +1,6 @@
 import json
 import logging
+import datetime
 import discord
 from discord.ext import commands
 from .sqlite_db import SQLiteDB
@@ -17,3 +18,7 @@ class CorkClient(commands.Bot):
     def get_settings(key: str):
         with open("bot_settings.json", "r") as f:
             return json.load(f).get(key)
+
+    @staticmethod
+    def get_kst() -> datetime.datetime:
+        return datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=9)))
