@@ -105,6 +105,7 @@ class Tasks(commands.Cog):
             await self.bot.wait_for("reaction_add",
                                     timeout=30,
                                     check=lambda r, u: str(r) == "⏰" and u.id == user.id and r.message.id == msg.id)
+            self.bot.loop.create_task(msg.add_reaction("✅"))
         except asyncio.TimeoutError:
             msg = await channel.send("이런! 알림을 확인하지 않으셔서 스누즈 기능이 활성화되었어요. 5분 뒤에 다시 알림을 울릴께요.\n"
                                      "아니면 5분 안에 :alarm_clock: 이모지 반응을 눌러주세요.")
