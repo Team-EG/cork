@@ -48,7 +48,7 @@ loop.run_until_complete(manage_commands.add_slash_command(
                      manage_commands.create_choice("weekly", "요일마다"),
                      manage_commands.create_choice("monthly", "매월"),
                      manage_commands.create_choice("yearly", "매년"),
-                     manage_commands.create_choice("duration ", "특정 간격으로")]
+                     manage_commands.create_choice("duration", "특정 간격으로")]
                 ),
                 manage_commands.create_option(
                     "요일",

@@ -251,6 +251,19 @@ class Alarm(commands.Cog):
         ring_time = f"{parsed_hour}시 {alarm['min']}분"
         if _type == "alarm":
             ring_time = f"{alarm['year']}년 {alarm['month']}월 {alarm['date']}일 " + ring_time
+        elif _type == "repeat":
+            if alarm["type"] == "daily":
+                ring_time = "매일 " + ring_time
+            elif alarm["type"] == "weekly":
+                week = {"mon": "월요일", "tue": "화요일", "wed": "수요일", "thu": "목요일", "fri": "금요일", "sat": "토요일", "sun": "일요일"}[alarm["duration"]]
+                ring_time = f"매주 {week} " + ring_time
+            elif alarm["type"] == "monthly":
+                ring_time = f"매월 {alarm['duration']}일 " + ring_time
+            elif alarm["type"] == "yearly":
+                mm, dd = alarm["duration"].split("-")
+                ring_time = f"매년 {mm}월 {dd}일 " + ring_time
+            elif alarm["type"] == "duration":
+                ring_time = f"{alarm['duration']}일 마다, " + ring_time
         embed = discord.Embed(title=f"`{name}` 알림 정보", timestamp=self.bot.get_kst())
         embed.add_field(name="알림 메시지", value=alarm["content"], inline=False)
         embed.add_field(name="울리는 시간", value=ring_time, inline=False)

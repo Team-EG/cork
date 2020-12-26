@@ -46,8 +46,11 @@ class Tasks(commands.Cog):
                     if mm != now.month or dd != now.day:
                         continue
                 elif x["type"] == "duration":
-                    called_at = datetime.datetime.strptime(x["last_called_at"], "%Y-%m-%d")
-                    to_call = called_at + datetime.timedelta(days=int(x["duration"]))
+                    if x["last_called_at"]:
+                        called_at = datetime.datetime.strptime(x["last_called_at"], "%Y-%m-%d")
+                        to_call = called_at + datetime.timedelta(days=int(x["duration"]))
+                    else:
+                        to_call = now
                     # 일단 빠른 개발을 위해 걍 str로 바꿔서 비교합니다.
                     if now.strftime("%Y-%m-%d") != to_call.strftime("%Y-%m-%d"):
                         continue
