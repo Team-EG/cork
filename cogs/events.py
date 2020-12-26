@@ -16,6 +16,10 @@ class Events(commands.Cog):
         await ctx.send(content="이런! 명령어를 실행하던 도중 오류가 발생했어요...\n"
                                f"```py\n{str_ex}\n```")
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("on_ready Dispatched.")
+
 
 def setup(bot):
     bot.add_cog(Events(bot))
