@@ -60,8 +60,7 @@ class Alarm(commands.Cog):
             await self.bot.db.exec_sql("""INSERT INTO alarm VALUES (?,?,?,?,?,?,?,?,?)""",
                                        (None, None, None, None, None, user_id, name, channel_id, content))
         await ctx.send(content="성공적으로 알림 기본 설정을 이 채널에 추가했어요!\n"
-                               "알림을 작동시키기 위해서는 `/set 보기` 명령어를 참고해주세요.",
-                       complete_hidden=True)
+                               "알림을 작동시키기 위해서는 `/set 보기` 명령어를 참고해주세요.")
 
     @cog_ext.cog_subcommand(base="set",
                             name="보기",
@@ -98,15 +97,15 @@ class Alarm(commands.Cog):
         is_alarm = await self.bot.db.res_sql("""SELECT * FROM repeat WHERE name=? AND user_id=? AND channel_id=?""",
                                              (name, user_id, channel_id))
         if not is_alarm:
-            return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.", complete_hidden=True)
+            return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.")
         if _type == "daily" and opt:
-            return await ctx.send(content="잘못된 입력입니다. (`날마다` 타입은 옵션을 입력하면 안됩니다!)", complete_hidden=True)
+            return await ctx.send(content="잘못된 입력입니다. (`날마다` 타입은 옵션을 입력하면 안됩니다!)")
         if _type != "daily" and opt is None:
-            return await ctx.send(content="잘못된 입력입니다. (옵션은 `날마다` 타입을 빼면 무조건 입력해야 합니다!)", complete_hidden=True)
+            return await ctx.send(content="잘못된 입력입니다. (옵션은 `날마다` 타입을 빼면 무조건 입력해야 합니다!)")
         if _type == "yearly" and not re.findall("^[01][0-9]-[0-3][0-9]$", opt):
-            return await ctx.send(content="잘못된 입력입니다. (`월-일`은 `MM-DD` 양식으로 입력해주세요!)", complete_hidden=True)
+            return await ctx.send(content="잘못된 입력입니다. (`월-일`은 `MM-DD` 양식으로 입력해주세요!)")
         if args:
-            return await ctx.send(content="잘못된 입력입니다. (옵션은 하나만 입력해야 합니다!)", complete_hidden=True)
+            return await ctx.send(content="잘못된 입력입니다. (옵션은 하나만 입력해야 합니다!)")
         if _type == "daily":
             await self.bot.db.exec_sql(
                 f"""UPDATE repeat SET min=?, hour=?, type=? WHERE name=? AND user_id=? AND channel_id=?""",
@@ -115,7 +114,7 @@ class Alarm(commands.Cog):
             await self.bot.db.exec_sql(
                 f"""UPDATE repeat SET min=?, hour=?, type=?, duration=? WHERE name=? AND user_id=? AND channel_id=?""",
                 (_min, hour, _type, opt, name, user_id, channel_id))
-        await ctx.send(content=f"성공적으로 `{name}` 반복 알림을 설정했습니다!", complete_hidden=True)
+        await ctx.send(content=f"성공적으로 `{name}` 반복 알림을 설정했습니다!")
 
     @cog_ext.cog_subcommand(base="set",
                             name="알림",
@@ -126,7 +125,7 @@ class Alarm(commands.Cog):
         is_alarm = await self.bot.db.res_sql("""SELECT * FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
                                              (name, user_id, channel_id))
         if not is_alarm:
-            return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.", complete_hidden=True)
+            return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.")
         today = datetime.datetime.now()
         if day == 0:
             day = today.day
@@ -137,7 +136,8 @@ class Alarm(commands.Cog):
         await self.bot.db.exec_sql(
             """UPDATE alarm SET min=?, hour=?, date=?, month=?, year=? WHERE name=? AND user_id=? AND channel_id=?""",
             (_min, hour, day, month, year, name, user_id, channel_id))
-        await ctx.send(content=f"성공적으로 `{name}` 알림을 설정했습니다!", complete_hidden=True)
+        await ctx.send(content=f"성공적으로 `{name}` 알림을 설정했습니다!\n"
+                               f"참고로, 일반 알림의 경우 시스템 특성상 울리는 시간은 시간이 같을 경우 알림 확인 명령어에서 보이지 않습니다.")
 
     @cog_ext.cog_slash(name="remove",
                        description="선택한 알림을 삭제합니다.",
@@ -165,17 +165,17 @@ class Alarm(commands.Cog):
             is_alarm = await self.bot.db.res_sql("""SELECT * FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
                                                  (name, user_id, channel_id))
             if not is_alarm:
-                return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.", complete_hidden=True)
+                return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.")
             await self.bot.db.exec_sql("DELETE FROM alarm WHERE name=? AND user_id=? AND channel_id=?",
                                        (name, user_id, channel_id))
         elif _type == "repeat":
             is_alarm = await self.bot.db.res_sql("""SELECT * FROM repeat WHERE name=? AND user_id=? AND channel_id=?""",
                                                  (name, user_id, channel_id))
             if not is_alarm:
-                return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.", complete_hidden=True)
+                return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.")
             await self.bot.db.exec_sql("DELETE FROM repeat WHERE name=? AND user_id=? AND channel_id=?",
                                        (name, user_id, channel_id))
-        await ctx.send(content="성공적으로 해당 알림을 삭제했어요!", complete_hidden=True)
+        await ctx.send(content="성공적으로 해당 알림을 삭제했어요!")
 
     @cog_ext.cog_slash(name="list",
                        description="등록된 알림 리스트를 봅니다.",
@@ -247,7 +247,8 @@ class Alarm(commands.Cog):
         if _type == "alarm":
             ring_time = f"{alarm['year']}년 {alarm['month']}월 {alarm['date']}일 " + ring_time
         embed = discord.Embed(title=f"`{name}` 알림 정보")
-        embed.add_field(name="울리는 시간", value=ring_time)
+        embed.add_field(name="알림 메시지", value=alarm["content"], inline=False)
+        embed.add_field(name="울리는 시간", value=ring_time, inline=False)
         await ctx.send(embeds=[embed])
 
 
