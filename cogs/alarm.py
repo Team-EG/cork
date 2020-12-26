@@ -108,11 +108,13 @@ class Alarm(commands.Cog):
         if args:
             return await ctx.send(content="잘못된 입력입니다. (옵션은 하나만 입력해야 합니다!)", complete_hidden=True)
         if _type == "daily":
-            await self.bot.db.exec_sql(f"""UPDATE repeat SET min=?, hour=?, type=? WHERE name=? AND user_id=? AND channel_id=?""",
-                                       (_min, hour, _type, name, user_id, channel_id))
+            await self.bot.db.exec_sql(
+                f"""UPDATE repeat SET min=?, hour=?, type=? WHERE name=? AND user_id=? AND channel_id=?""",
+                (_min, hour, _type, name, user_id, channel_id))
         else:
-            await self.bot.db.exec_sql(f"""UPDATE repeat SET min=?, hour=?, type=?, duration=? WHERE name=? AND user_id=? AND channel_id=?""",
-                                       (_min, hour, _type, opt, name, user_id, channel_id))
+            await self.bot.db.exec_sql(
+                f"""UPDATE repeat SET min=?, hour=?, type=?, duration=? WHERE name=? AND user_id=? AND channel_id=?""",
+                (_min, hour, _type, opt, name, user_id, channel_id))
         await ctx.send(content=f"성공적으로 `{name}` 반복 알림을 설정했습니다!", complete_hidden=True)
 
     @cog_ext.cog_subcommand(base="set",
@@ -132,8 +134,9 @@ class Alarm(commands.Cog):
             month = today.month
         if year == 0:
             year = today.year
-        await self.bot.db.exec_sql("""UPDATE alarm SET min=?, hour=?, date=?, month=?, year=? WHERE name=? AND user_id=? AND channel_id=?""",
-                                   (_min, hour, day, month, year, name, user_id, channel_id))
+        await self.bot.db.exec_sql(
+            """UPDATE alarm SET min=?, hour=?, date=?, month=?, year=? WHERE name=? AND user_id=? AND channel_id=?""",
+            (_min, hour, day, month, year, name, user_id, channel_id))
         await ctx.send(content=f"성공적으로 `{name}` 알림을 설정했습니다!", complete_hidden=True)
 
     @cog_ext.cog_slash(name="remove",
@@ -145,7 +148,8 @@ class Alarm(commands.Cog):
                                "알림의 타입입니다.",
                                3,
                                True,
-                               [manage_commands.create_choice("alarm", "알림"), manage_commands.create_choice("repeat", "반복")]
+                               [manage_commands.create_choice("alarm", "알림"),
+                                manage_commands.create_choice("repeat", "반복")]
                            ),
                            manage_commands.create_option(
                                "알림이름",
@@ -202,6 +206,48 @@ class Alarm(commands.Cog):
         embed.add_field(name="알림 타입", value="없음" if not alarm_list else "`" + ("`, `".join(
             [f"{x['name']}" for x in alarm_list]
         )) + "`")
+        await ctx.send(embeds=[embed])
+
+    @cog_ext.cog_slash(name="detail",
+                       description="알림의 설정 정보를 보여줍니다.",
+                       guild_ids=guild_ids,
+                       options=[
+                           manage_commands.create_option(
+                               "알림타입",
+                               "알림의 타입입니다.",
+                               3,
+                               True,
+                               [manage_commands.create_choice("repeat", "반복"),
+                                manage_commands.create_choice("alarm", "알림")]
+                           ),
+                           manage_commands.create_option(
+                               "알림이름",
+                               "알림의 이름입니다.",
+                               3,
+                               True
+                           )
+                       ])
+    async def alarm_detail(self, ctx: SlashContext, _type, name):
+        global alarm
+        channel_id = ctx.channel.id if not isinstance(ctx.channel, int) else ctx.channel
+        user_id = ctx.author.id if not isinstance(ctx.author, int) else ctx.author
+        if _type == "alarm":
+            alarm = await self.bot.db.res_sql("""SELECT * FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
+                                              (name, user_id, channel_id))
+            if not alarm:
+                return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.", complete_hidden=True)
+        elif _type == "repeat":
+            alarm = await self.bot.db.res_sql("""SELECT * FROM repeat WHERE name=? AND user_id=? AND channel_id=?""",
+                                              (name, user_id, channel_id))
+            if not alarm:
+                return await ctx.send(content="해당 알림은 존재하지 않습니다. 채널과 이름을 확인해주세요.", complete_hidden=True)
+        alarm = alarm[0]
+        parsed_hour = ("오전 " + str(alarm["hour"])) if alarm["hour"] < 12 else ("오후 " + str(alarm["hour"] - 12 if alarm["hour"] != 12 else 12))
+        ring_time = f"{parsed_hour}시 {alarm['min']}분"
+        if _type == "alarm":
+            ring_time = f"{alarm['year']}년 {alarm['month']}월 {alarm['date']}일 " + ring_time
+        embed = discord.Embed(title=f"`{name}` 알림 정보")
+        embed.add_field(name="울리는 시간", value=ring_time)
         await ctx.send(embeds=[embed])
 
 
