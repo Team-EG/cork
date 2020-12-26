@@ -61,6 +61,7 @@ class Tasks(commands.Cog):
                     last_called_at = now.strftime("%Y-%m-%d")
                     await self.bot.db.exec_sql("""UPDATE repeat SET last_called_at=? WHERE name=? AND user_id=? AND channel_id=?""",
                                                (last_called_at, x["name"], user.id, channel.id))
+                    await self.bot.db.exec_sql("""INSERT INTO forgotten VALUES (?,?)""", (now.strftime("%Y-%m-%d %H:%M:%S"), x))
             await asyncio.sleep(1)
 
     @tasks.loop()
@@ -78,14 +79,20 @@ class Tasks(commands.Cog):
                     self.queued["alarm"][user.id][channel.id] = []
                 if x["name"] in self.queued["alarm"][user.id][channel.id]:
                     continue
-                if x["year"] == now.year:
-                    if x["month"] == now.month:
-                        if x["date"] == now.day:
-                            if x["hour"] == now.hour:
-                                if x["min"] >= now.minute:
-                                    self.prepare_alarm(x["min"], now, user, channel, x["name"], "alarm", x["content"])
-                                await self.bot.db.exec_sql("""DELETE FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
-                                                           (x["name"], user.id, channel.id))
+                if x["year"] == now.year and x["month"] == now.month and x["date"] == now.day and x["hour"] == now.hour:
+                    if x["min"] >= now.minute:
+                        self.prepare_alarm(x["min"], now, user, channel, x["name"], "alarm", x["content"])
+                        await self.bot.db.exec_sql("""INSERT INTO forgotten VALUES (?,?)""",
+                                                   (now.strftime("%Y-%m-%d %H:%M:%S"), x))
+                        # 일단 중복 알림이 울리는 것을 방지하기 위해 지웁니다. 어차피 파이썬 루프 안에서는 살아있어서 언제든 복구 가능해요.
+                        await self.bot.db.exec_sql("""DELETE FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
+                                                   (x["name"], user.id, channel.id))
+                if x["min"] < now.minute:
+                    if x["hour"] <= now.hour:
+                        if x["date"] <= now.day:
+                            if x["month"] <= now.month:
+                                if x["year"] <= now.year:
+                                    pass
             await asyncio.sleep(1)
 
     def prepare_alarm(self, _min, now, user: discord.User, channel: discord.TextChannel, name, _type, cont):
@@ -121,6 +128,15 @@ class Tasks(commands.Cog):
                 await channel.send("스누즈가 취소되었어요.")
             except asyncio.TimeoutError:
                 self.bot.loop.create_task(self.ring_alarm(0, user, channel, name, cont, False))
+
+    async def trigger_forgotten(self, user: discord.User, channel: discord.TextChannel, name):
+        await channel.send(user.mention, embed=discord.Embed(
+            title="이런! 울렸어야 하는 알림이 하나 있었네요...",
+            description="봇의 오류 때문에 이 알림이 잊혀진 것 같아요.\n"
+                        f"알림 이름은 `{name}` 이에요.\n"
+                        "`/log` 명령어로 로그를 확인해주시고, 이 알림이 로그에 아예 없다면 봇 개발자에게 알려주세요.",
+            timestamp=self.bot.get_kst()
+        ))
 
 
 def setup(bot):
