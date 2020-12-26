@@ -35,7 +35,7 @@ class Utils(commands.Cog):
     @cog_ext.cog_slash(name="타이머", description="타이머 기능입니다.", guild_ids=guild_ids)
     async def utils_timer(self, ctx: SlashContext, mins, secs):
         secs += mins*60
-        await ctx.send(content=f"타이머가 설정되었어요! {self.parse_second(secs)} 뒤에 알려드릴께요!")
+        await ctx.send(content=f"타이머가 설정되었어요! {self.parse_second(secs)} 뒤에 알려드릴게요!")
         await asyncio.sleep(secs)
         await ctx.channel.send(f"{ctx.author.mention} 타이머가 울렸어요!")
 
