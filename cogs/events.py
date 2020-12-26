@@ -1,4 +1,5 @@
 import traceback
+import discord
 from discord.ext import commands
 from discord_slash import SlashContext
 from modules.client import CorkClient
@@ -19,6 +20,7 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print("on_ready Dispatched.")
+        await self.bot.change_presence(activity=discord.Game(name="슬래시 커맨드를 확인해보세요!"))
 
 
 def setup(bot):
