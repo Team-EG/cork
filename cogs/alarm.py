@@ -199,7 +199,7 @@ class Alarm(commands.Cog):
             channel_id = ctx.channel.id if not isinstance(ctx.channel, int) else ctx.channel
             alarm_list = await self.bot.db.res_sql("""SELECT * FROM alarm WHERE channel_id=?""", (channel_id,))
             repeat_list = await self.bot.db.res_sql("""SELECT * FROM repeat WHERE channel_id=?""", (channel_id,))
-        embed = discord.Embed(title="등록된 알림 리스트")
+        embed = discord.Embed(title="등록된 알림 리스트", timestamp=self.bot.get_kst())
         embed.add_field(name="반복 타입", value="없음" if not repeat_list else "`" + ("`, `".join(
             [f"{x['name']}" for x in repeat_list]
         )) + "`")
@@ -246,7 +246,7 @@ class Alarm(commands.Cog):
         ring_time = f"{parsed_hour}시 {alarm['min']}분"
         if _type == "alarm":
             ring_time = f"{alarm['year']}년 {alarm['month']}월 {alarm['date']}일 " + ring_time
-        embed = discord.Embed(title=f"`{name}` 알림 정보")
+        embed = discord.Embed(title=f"`{name}` 알림 정보", timestamp=self.bot.get_kst())
         embed.add_field(name="알림 메시지", value=alarm["content"], inline=False)
         embed.add_field(name="울리는 시간", value=ring_time, inline=False)
         await ctx.send(embeds=[embed])

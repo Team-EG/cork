@@ -94,8 +94,9 @@ class Tasks(commands.Cog):
 
     async def ring_alarm(self, wait, user: discord.User, channel: discord.TextChannel, name, cont, clr_after):
         await asyncio.sleep(wait)
-        embed = discord.Embed(title="⏰ 시간이 됐어요!", description=f"설정하신 `{name}` 알림이 울렸어요!")
+        embed = discord.Embed(title="⏰ 시간이 됐어요!", description=f"설정하신 `{name}` 알림이 울렸어요!", timestamp=self.bot.get_kst())
         embed.add_field(name="알림 내용", value=cont)
+        embed.set_footer(text="알림을 확인하셨다면 이모지 반응을 클릭해주세요!")
         msg = await channel.send(user.mention, embed=embed)
         if clr_after:
             _list = self.queued["repeat"][user.id][channel.id]
