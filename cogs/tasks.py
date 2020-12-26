@@ -12,6 +12,7 @@ class Tasks(commands.Cog):
         self.bot = bot
         self.repeat_alarm_loop.start()
         self.alarm_alarm_loop.start()
+        self.bot.loop.create_task(self.check_if_forgotten())
         self.queued = {"repeat": {}, "alarm": {}}
 
     def cog_unload(self):
@@ -22,7 +23,12 @@ class Tasks(commands.Cog):
         await self.bot.wait_until_ready()
         forgotten = await self.bot.db.res_sql("SELECT * FROM forgotten")
         for x in forgotten:
-            pass
+            raw = json.loads(x["raw_data"])
+            channel = self.bot.get_channel(raw["channel_id"])
+            user = self.bot.get_user(raw["user_id"])
+            await self.trigger_forgotten(user, channel, raw["name"], x["invoke_at"]+" (예상)")
+            await self.bot.db.exec_sql("""DELETE FROM forgotten WHERE invoke_at=? AND raw_data=?""",
+                                       (x["invoke_at"], x["raw_data"]))
 
     @tasks.loop()
     async def repeat_alarm_loop(self):
