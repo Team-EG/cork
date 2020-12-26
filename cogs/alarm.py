@@ -62,6 +62,11 @@ class Alarm(commands.Cog):
         await ctx.send(content="성공적으로 알림 기본 설정을 이 채널에 추가했어요!\n"
                                "알림을 작동시키기 위해서는 `/set 보기` 명령어를 참고해주세요.")
 
+    @cog_ext.cog_slash(name="set")
+    async def wrong(self, ctx: SlashContext):
+        await ctx.send(content="이런! 이 메시지가 보인다면 커맨드 등록에 문제가 생긴 것이에요...\n"
+                               "최소 1시간은 기다려주세요.")
+
     @cog_ext.cog_subcommand(base="set",
                             name="보기",
                             guild_ids=guild_ids)

@@ -126,6 +126,12 @@ async def _new_cog(ctx, *args):
         await msg.remove_reaction(reaction, ctx.author)
 
 
+@bot.command(name="eval")
+@commands.is_owner()
+async def _eval(ctx, *, code):
+    await ctx.send(await eval(code.lstrip("await ")) if code.startswith("await ") else eval(code))
+
+
 [bot.load_extension("cogs."+x.replace(".py", "")) for x in os.listdir("cogs") if x.endswith(".py")]
 
 bot.run(bot.get_settings("token"))
