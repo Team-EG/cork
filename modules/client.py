@@ -1,6 +1,7 @@
 import json
 import logging
 import datetime
+import koreanbots
 from discord.ext import commands
 from .sqlite_db import SQLiteDB
 from discord_slash import SlashCommand
@@ -12,6 +13,7 @@ class CorkClient(commands.Bot):
         self.slash = SlashCommand(self, auto_register=True)
         self.db = SQLiteDB("main")
         self.logger = logging.getLogger("cork")
+        self.koreanbots = koreanbots.Client(self, self.get_settings("kor_token"))
 
     @staticmethod
     def get_settings(key: str):
