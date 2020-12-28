@@ -134,4 +134,4 @@ async def _eval(ctx, *, code):
 
 [bot.load_extension("cogs."+x.replace(".py", "")) for x in os.listdir("cogs") if x.endswith(".py")]
 
-bot.run(bot.get_settings("token"))
+bot.run_bot()
