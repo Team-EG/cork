@@ -138,6 +138,9 @@ class Alarm(commands.Cog):
             month = today.month
         if year == 0:
             year = today.year
+        _set = datetime.datetime.strptime(f"{year}-{month}-{day} {hour}:{_min}:59", "%Y-%m-%d %H:%M:%S")
+        if _set < today:
+            return await ctx.send(content="현재 시간 이전으로는 설정할 수 없습니다.")
         await self.bot.db.exec_sql(
             """UPDATE alarm SET min=?, hour=?, date=?, month=?, year=? WHERE name=? AND user_id=? AND channel_id=?""",
             (_min, hour, day, month, year, name, user_id, channel_id))

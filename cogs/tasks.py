@@ -93,7 +93,7 @@ class Tasks(commands.Cog):
                         await self.bot.db.exec_sql("""DELETE FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
                                                    (x["name"], user.id, channel.id))
                 if x["min"] < now.minute and x["hour"] <= now.hour and x["date"] <= now.day and x["month"] <= now.month and x["year"] <= now.year:
-                    # 이경우 확실이 뭔가 엿된게 분명하므로 바로 전송하러 갑니다.
+                    # 이경우 확실히 뭔가 엿된게 분명하므로 바로 전송하러 갑니다.
                     orig_time = f"{x['year']}년 {x['month']}월 {x['date']}일 {x['hour']}시 {x['min']}분"
                     self.bot.loop.create_task(self.trigger_forgotten(user, channel, x["name"], orig_time))
                     if await self.bot.db.res_sql("""SELECT * FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
@@ -106,10 +106,12 @@ class Tasks(commands.Cog):
         _min = _min - now.minute
         secs = _min * 60 - now.second
         secs = secs if secs > 0 else 0
-        self.bot.loop.create_task(self.ring_alarm(secs, user, channel, name, cont, True, raw))
+        self.bot.loop.create_task(self.ring_alarm(secs, user, channel, name, cont, True, _type, raw))
+        self.bot.dispatch("alarm_prepare", _type, name, user, channel)
 
-    async def ring_alarm(self, wait, user: discord.User, channel: discord.TextChannel, name, cont, clr_after, raw=None):
+    async def ring_alarm(self, wait, user: discord.User, channel: discord.TextChannel, name, cont, clr_after, _type, raw=None):
         await asyncio.sleep(wait)
+        self.bot.dispatch("alarm_trigger", _type, name, user, channel)
         embed = discord.Embed(title="⏰ 시간이 됐어요!", description=f"설정하신 `{name}` 알림이 울렸어요!", timestamp=self.bot.get_kst())
         embed.add_field(name="알림 내용", value=cont)
         embed.set_footer(text="알림을 확인하셨다면 이모지 반응을 클릭해주세요!")
@@ -123,6 +125,7 @@ class Tasks(commands.Cog):
                                     check=lambda r, u: str(r) == "⏰" and u.id == user.id and r.message.id == msg.id)
             self.bot.loop.create_task(msg.add_reaction("✅"))
         except asyncio.TimeoutError:
+            self.bot.dispatch("snooze_trigger", _type, name, user, channel)
             msg = await channel.send("이런! 알림을 확인하지 않으셔서 스누즈 기능이 활성화되었어요. 5분 뒤에 다시 알림을 울릴께요.\n"
                                      "아니면 5분 안에 :alarm_clock: 이모지 반응을 눌러주세요.")
             self.bot.loop.create_task(msg.add_reaction("⏰"))
@@ -131,8 +134,9 @@ class Tasks(commands.Cog):
                                         timeout=60*5,
                                         check=lambda r, u: str(r) == "⏰" and u.id == user.id and r.message.id == msg.id)
                 await channel.send("스누즈가 취소되었어요.")
+                self.bot.dispatch("snooze_cancel", _type, name, user, channel)
             except asyncio.TimeoutError:
-                self.bot.loop.create_task(self.ring_alarm(0, user, channel, name, cont, False))
+                self.bot.loop.create_task(self.ring_alarm(0, user, channel, name, cont, False, _type))
 
     async def trigger_forgotten(self, user: discord.User, channel: discord.TextChannel, name, orig_time):
         await channel.send(user.mention, embed=discord.Embed(
