@@ -63,6 +63,16 @@ class Tasks(commands.Cog):
                         continue
                 if x["hour"] == now.hour:
                     if x["min"] >= now.minute:
+                        if not channel:
+                            if user:
+                                try:
+                                    await user.send(f"이런! {x['name']} 알림을 설정한 채널이 사라져서 발송에 실패했어요."
+                                                    "알림은 삭제해드릴께요.")
+                                except (discord.Forbidden, discord.HTTPException):
+                                    pass
+                            self.bot.dispatch("alarm_channel_none", x["name"], x["user_id"], x["channel_id"])
+                            await self.bot.db.exec_sql("""DELETE FROM repeat WHERE name=? AND user_id=? AND channel_id=?""",
+                                                       (x["name"], x["user_id"], x["channel_id"]))
                         args = (now.strftime("%Y-%m-%d %H:%M:%S"), json.dumps(x))
                         await self.bot.db.exec_sql("""INSERT INTO forgotten VALUES (?,?)""", args)
                         self.prepare_alarm(x["min"], now, user, channel, x["name"], "repeat", x["content"], args)
@@ -86,6 +96,16 @@ class Tasks(commands.Cog):
                     continue
                 if x["year"] == now.year and x["month"] == now.month and x["date"] == now.day and x["hour"] == now.hour:
                     if x["min"] >= now.minute:
+                        if not channel:
+                            if user:
+                                try:
+                                    await user.send(f"이런! {x['name']} 알림을 설정한 채널이 사라져서 발송에 실패했어요."
+                                                    "알림은 삭제해드릴께요.")
+                                except (discord.Forbidden, discord.HTTPException):
+                                    pass
+                            self.bot.dispatch("alarm_channel_none", x["name"], x["user_id"], x["channel_id"])
+                            await self.bot.db.exec_sql("""DELETE FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
+                                                       (x["name"], x["user_id"], x["channel_id"]))
                         arg = (now.strftime("%Y-%m-%d %H:%M:%S"), json.dumps(x))
                         self.prepare_alarm(x["min"], now, user, channel, x["name"], "alarm", x["content"], arg)
                         await self.bot.db.exec_sql("""INSERT INTO forgotten VALUES (?,?)""", arg)
