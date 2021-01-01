@@ -135,7 +135,10 @@ class Tasks(commands.Cog):
         embed = discord.Embed(title="⏰ 시간이 됐어요!", description=f"설정하신 `{name}` 알림이 울렸어요!", timestamp=self.bot.get_kst())
         embed.add_field(name="알림 내용", value=cont)
         embed.set_footer(text="알림을 확인하셨다면 이모지 반응을 클릭해주세요!")
-        msg = await channel.send(user.mention, embed=embed)
+        try:
+            msg = await channel.send(user.mention, embed=embed)
+        except (discord.Forbidden, discord.NotFound, discord.HTTPException):
+            return
         if clr_after:
             await self.bot.db.exec_sql("""DELETE FROM forgotten WHERE invoke_at=? AND raw_data=?""", raw)
         self.bot.loop.create_task(msg.add_reaction("⏰"))
