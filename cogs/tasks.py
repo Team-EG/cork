@@ -73,6 +73,7 @@ class Tasks(commands.Cog):
                             self.bot.dispatch("alarm_channel_none", x["name"], x["user_id"], x["channel_id"])
                             await self.bot.db.exec_sql("""DELETE FROM repeat WHERE name=? AND user_id=? AND channel_id=?""",
                                                        (x["name"], x["user_id"], x["channel_id"]))
+                            continue
                         args = (now.strftime("%Y-%m-%d %H:%M:%S"), json.dumps(x))
                         await self.bot.db.exec_sql("""INSERT INTO forgotten VALUES (?,?)""", args)
                         self.prepare_alarm(x["min"], now, user, channel, x["name"], "repeat", x["content"], args)
@@ -106,6 +107,7 @@ class Tasks(commands.Cog):
                             self.bot.dispatch("alarm_channel_none", x["name"], x["user_id"], x["channel_id"])
                             await self.bot.db.exec_sql("""DELETE FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
                                                        (x["name"], x["user_id"], x["channel_id"]))
+                            continue
                         arg = (now.strftime("%Y-%m-%d %H:%M:%S"), json.dumps(x))
                         self.prepare_alarm(x["min"], now, user, channel, x["name"], "alarm", x["content"], arg)
                         await self.bot.db.exec_sql("""INSERT INTO forgotten VALUES (?,?)""", arg)
