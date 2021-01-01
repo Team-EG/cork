@@ -26,6 +26,23 @@ class Tasks(commands.Cog):
             raw = json.loads(x["raw_data"])
             channel = self.bot.get_channel(raw["channel_id"])
             user = self.bot.get_user(raw["user_id"])
+            if not channel:
+                if user:
+                    try:
+                        await user.send(f"이런! `{raw['name']}` 알림을 설정한 채널이 사라져서 발송에 실패했어요."
+                                        "알림은 삭제해드릴께요.")
+                    except (discord.Forbidden, discord.HTTPException):
+                        pass
+                self.bot.dispatch("alarm_channel_none", raw["name"], raw["user_id"], raw["channel_id"])
+                await self.bot.db.exec_sql("""DELETE FROM forgotten WHERE invoke_at=? AND raw_data=?""",
+                                           (x["invoke_at"], x["raw_data"]))
+                if "type" in raw.keys():
+                    await self.bot.db.exec_sql("""DELETE FROM repeat WHERE name=? AND user_id=? AND channel_id=?""",
+                                               (raw["name"], raw["user_id"], raw["channel_id"]))
+                else:
+                    await self.bot.db.exec_sql("""DELETE FROM alarm WHERE name=? AND user_id=? AND channel_id=?""",
+                                               (raw["name"], raw["user_id"], raw["channel_id"]))
+                continue
             await self.trigger_forgotten(user, channel, raw["name"], x["invoke_at"]+" (예상)")
             await self.bot.db.exec_sql("""DELETE FROM forgotten WHERE invoke_at=? AND raw_data=?""",
                                        (x["invoke_at"], x["raw_data"]))
@@ -66,7 +83,7 @@ class Tasks(commands.Cog):
                         if not channel:
                             if user:
                                 try:
-                                    await user.send(f"이런! {x['name']} 알림을 설정한 채널이 사라져서 발송에 실패했어요."
+                                    await user.send(f"이런! `{x['name']}` 알림을 설정한 채널이 사라져서 발송에 실패했어요."
                                                     "알림은 삭제해드릴께요.")
                                 except (discord.Forbidden, discord.HTTPException):
                                     pass
@@ -100,7 +117,7 @@ class Tasks(commands.Cog):
                         if not channel:
                             if user:
                                 try:
-                                    await user.send(f"이런! {x['name']} 알림을 설정한 채널이 사라져서 발송에 실패했어요."
+                                    await user.send(f"이런! `{x['name']}` 알림을 설정한 채널이 사라져서 발송에 실패했어요."
                                                     "알림은 삭제해드릴께요.")
                                 except (discord.Forbidden, discord.HTTPException):
                                     pass
